@@ -1,6 +1,6 @@
 # DLSS Upscaling for Unity
 
-## DLSS HDRP OFF
+## DLSS HDRP OFF -- Tested on 2022+ & Unity 6
 ![Screenshot 2025-05-07 165235](https://github.com/user-attachments/assets/1dbe1692-63bf-4f62-9281-d63a37c6cf49)
 ---
 ## DLSS HDRP ON
