@@ -6,6 +6,10 @@ using UnityEngine.Rendering.HighDefinition;
 
 #if UNITY_STANDALONE_WIN && UNITY_64
 using UnityEngine.NVIDIA;
+using UnityEditor;
+using System.IO;
+
+
 #endif
 
 #if DLSS_INSTALLED && UNITY_STANDALONE_WIN && UNITY_64
@@ -25,6 +29,7 @@ namespace TND.DLSS
 
         private HDCamera m_camera;
         public HDCamera hdCamera;
+        private bool m_usePhysicalProperties;
 
         public DlssViewData dlssData;
         public ViewState state;
@@ -51,6 +56,49 @@ namespace TND.DLSS
             m_postProcessPass = m_postProcessVolume.profile.Add<DLSSRenderPass>();
             m_postProcessPass.enable.value = true;
             m_postProcessPass.enable.Override(true);
+
+            enabled = CheckHDRPSetup();
+        }
+
+        private bool CheckHDRPSetup()
+        {
+#if !TND_HDRP_EDITEDSOURCE
+            Debug.LogError("[FSR 3] HDRP Source edits are not confirmed, please make sure the edits are made correctly and press the 'Confirmation' button on the Upscaler Component");
+            return false;
+#elif UNITY_EDITOR
+            try
+            {
+                RenderPipelineGlobalSettings _hdRenderPipeline = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>();
+                string _hdRenderPipelineName = "";
+                if (_hdRenderPipeline != null)
+                {
+                    _hdRenderPipelineName = _hdRenderPipeline.name;
+                }
+                string[] guids = AssetDatabase.FindAssets(_hdRenderPipelineName + " t:HDRenderPipelineGlobalSettings ", null);
+                bool containsUpscalerPass = false;
+
+                for (int i = 0; i < guids.Length; i++)
+                {
+                    var path = AssetDatabase.GUIDToAssetPath(guids[i]);
+                    if (_hdRenderPipeline == AssetDatabase.LoadAssetAtPath(path, typeof(RenderPipelineGlobalSettings)))
+                    {
+                        if (File.ReadAllText(path).Contains("TND.DLSS.DLSSRenderPass"))
+                        {
+                            containsUpscalerPass = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!containsUpscalerPass)
+                {
+                    Debug.LogError("[DLSS] Upscaler has not been added to the 'Before Post Process' in the 'Custom Post Process Orders' of the HDRP Global Settings Asset, please see the Quick Start: HDRP chapter of the documentation");
+                    return false;
+                }
+            }
+            catch { }
+#endif
+            return true;
         }
 
         private void OnBeginContextRendering(ScriptableRenderContext renderContext, List<Camera> cameras)
@@ -64,19 +112,24 @@ namespace TND.DLSS
                 return;
             }
 
-            if (m_previousScaleFactor != m_scaleFactor || m_displayWidth != m_mainCamera.pixelWidth || m_displayHeight != m_mainCamera.pixelHeight || m_previousRenderingPath != m_mainCamera.actualRenderingPath || dlssData.sharpening != sharpening) {
+            if (m_previousScaleFactor != m_scaleFactor || m_displayWidth != m_mainCamera.pixelWidth || m_displayHeight != m_mainCamera.pixelHeight || m_previousRenderingPath != m_mainCamera.actualRenderingPath || dlssData.sharpening != sharpening)
+            {
                 SetupResolution();
             }
 
+            m_usePhysicalProperties = m_mainCamera.usePhysicalProperties;
+
             JitterCameraMatrix();
-         
+
             dlssData.sharpness = sharpness;
             UpdateDlssSettings(ref dlssData, state, DLSSQuality, device);
         }
 
         private void OnEndContextRendering(ScriptableRenderContext renderContext, List<Camera> cameras)
         {
-            m_mainCamera.ResetProjectionMatrix();
+            m_mainCamera.usePhysicalProperties = m_usePhysicalProperties;
+            if (!m_mainCamera.usePhysicalProperties)
+                m_mainCamera.ResetProjectionMatrix();
         }
 
         /// <summary>
@@ -102,8 +155,10 @@ namespace TND.DLSS
             {
                 m_camera = hdCamera;
                 m_mainCamera = hdCamera.camera;
+
+#if TND_HDRP_EDITEDSOURCE
                 m_camera.tndUpscalerEnabled = true;
-                
+#endif
                 //Make sure the camera allows Dynamic Resolution and VolumeMask includes the Layer of the camera.
                 HDAdditionalCameraData m_mainCameraAdditional = m_mainCamera.GetComponent<HDAdditionalCameraData>();
                 m_mainCameraAdditional.allowDynamicResolution = true;
@@ -118,7 +173,7 @@ namespace TND.DLSS
         /// </summary>
         private void SetupResolution()
         {
-         
+
             m_displayWidth = m_mainCamera.pixelWidth;
             m_displayHeight = m_mainCamera.pixelHeight;
 
@@ -171,8 +226,11 @@ namespace TND.DLSS
 
             if (m_mainCamera != null)
             {
+#if TND_HDRP_EDITEDSOURCE
+            if(hdCamera != null){
                 hdCamera.tndUpscalerEnabled = false;
-
+            }
+#endif
                 //Set main camera to null to make sure it's setup again when dlss is initialized
                 m_mainCamera = null;
                 m_camera = null;

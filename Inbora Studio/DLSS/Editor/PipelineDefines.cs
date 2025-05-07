@@ -2,13 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace TND.DLSS
 {
     public class RemoveDefines : AssetPostprocessor
     {
-        const string relativeFilePathWithTypeExtension = "The Naked Dev/DLSS";
+        const string relativeFilePathWithTypeExtension = "Inbora Studio/DLSS";
 
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets,
                                            string[] movedAssets, string[] movedFromAssetPaths)
@@ -22,6 +23,7 @@ namespace TND.DLSS
                     PipelineDefines.RemoveDefine("UNITY_BIRP");
                     PipelineDefines.RemoveDefine("UNITY_HDRP");
                     PipelineDefines.RemoveDefine("UNITY_URP");
+                    PipelineDefines.RemoveDefine("TND_HDRP_EDITEDSOURCE");
                 }
             }
             catch { }
@@ -84,24 +86,30 @@ namespace TND.DLSS
         static PipelineType GetPipeline()
         {
 #if UNITY_2019_1_OR_NEWER
-            if (GraphicsSettings.renderPipelineAsset != null)
+            var srpType = "BIRP";
+
+            if (GraphicsSettings.defaultRenderPipeline != null)
             {
-                var srpType = GraphicsSettings.renderPipelineAsset.GetType().ToString();
-                //HDRP
-                if (srpType.Contains("HDRenderPipelineAsset"))
-                {
-                    return PipelineType.HDRP;
-                }
-                //URP
-                else
-                {
-                    return PipelineType.URP;
-                }
+                srpType = GraphicsSettings.defaultRenderPipeline.GetType().ToString();
+            }
+            else if (QualitySettings.renderPipeline != null)
+            {
+                srpType = QualitySettings.renderPipeline.GetType().ToString();
             }
 #endif
 
-            //BIRP
-            return PipelineType.BIRP;
+            if (srpType == "BIRP")//BIRP
+            {
+                return PipelineType.BIRP;
+            }
+            else if (srpType.Contains("HDRenderPipelineAsset"))  //HDRP 
+            {
+                return PipelineType.HDRP;
+            }
+            else //URP
+            {
+                return PipelineType.URP;
+            }
         }
 
         public static void AddDefine(string define)

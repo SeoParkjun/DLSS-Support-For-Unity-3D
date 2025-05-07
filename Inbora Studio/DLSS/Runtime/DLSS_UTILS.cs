@@ -20,12 +20,13 @@ namespace TND.DLSS
 {
     public enum DLSS_Quality
     {
-        Off,
-        DLAA,
-        MaximumQuality,
-        Balanced,
-        MaximumPerformance,
-        UltraPerformance
+        Off = 0,
+        NativeAA = 1,
+        UltraQuality = 2,
+        Quality = 3,
+        Balanced = 4,
+        Performance = 5,
+        UltraPerformance = 6,
     }
 
     public class DLSS_UTILS : MonoBehaviour
@@ -34,19 +35,20 @@ namespace TND.DLSS
         public float m_antiGhosting = 0.1f;
         public bool sharpening = true;
         public float sharpness = 0.5f;
+        public Camera m_mainCamera;
 
 #if TND_DLSS && UNITY_STANDALONE_WIN && UNITY_64
 
         protected DLSS_Quality m_previousDLSSQuality;
 
         protected bool m_dlssInitialized = false;
-        protected Camera m_mainCamera;
+
 
         protected float m_scaleFactor = 1.5f;
         public int m_renderWidth, m_renderHeight;
-        protected int m_displayWidth, m_displayHeight;
+        public int m_displayWidth, m_displayHeight;
 
-  
+
 
         private static bool useJitter = true;
 
@@ -63,15 +65,24 @@ namespace TND.DLSS
             m_previousDLSSQuality = value;
             DLSSQuality = value;
 
-            m_scaleFactor = GetUpscaleRatioFromQualityMode(value);
             Initialize();
+
+            if (value == DLSS_Quality.Off)
+            {
+                DisableDLSS();
+                m_scaleFactor = 1;
+            }
+            else
+            {
+                m_scaleFactor = GetUpscaleRatioFromQualityMode(value);
+            }
         }
 
         /// <summary>
         /// Checks wether DLSS is compatible using the current build settings 
         /// </summary>
         /// <returns></returns>
-        public bool IsSupported()
+        public bool OnIsSupported()
         {
             if (device == null)
             {
@@ -117,7 +128,7 @@ namespace TND.DLSS
         /// </summary>
         protected virtual void Initialize()
         {
-            bool dlssCompatible = IsSupported();
+            bool dlssCompatible = OnIsSupported();
 
             if (m_dlssInitialized)
             {
@@ -201,13 +212,15 @@ namespace TND.DLSS
             {
                 case DLSS_Quality.Off:
                     return 1.0f;
-                case DLSS_Quality.DLAA:
+                case DLSS_Quality.NativeAA:
                     return 1.0f;
-                case DLSS_Quality.MaximumQuality:
+                case DLSS_Quality.UltraQuality:
+                    return 1.2f;
+                case DLSS_Quality.Quality:
                     return 1.5f;
                 case DLSS_Quality.Balanced:
                     return 1.7f;
-                case DLSS_Quality.MaximumPerformance:
+                case DLSS_Quality.Performance:
                     return 2.0f;
                 case DLSS_Quality.UltraPerformance:
                     return 3.0f;
@@ -221,11 +234,15 @@ namespace TND.DLSS
 
             dlssSettings.jitterX = -taaJitter.x;
             dlssSettings.jitterY = -taaJitter.y;
-            if (_dlssQuality == DLSS_Quality.DLAA)
+            if (_dlssQuality == DLSS_Quality.NativeAA)
             {
                 dlssSettings.perfQuality = (NVIDIA.DLSSQuality)(-1);
             }
-            else if (_dlssQuality == DLSS_Quality.MaximumQuality)
+            else if (_dlssQuality == DLSS_Quality.UltraQuality)
+            {
+                dlssSettings.perfQuality = NVIDIA.DLSSQuality.MaximumQuality;
+            }
+            else if (_dlssQuality == DLSS_Quality.Quality)
             {
                 dlssSettings.perfQuality = NVIDIA.DLSSQuality.MaximumQuality;
             }
@@ -233,7 +250,7 @@ namespace TND.DLSS
             {
                 dlssSettings.perfQuality = NVIDIA.DLSSQuality.Balanced;
             }
-            else if (_dlssQuality == DLSS_Quality.MaximumPerformance)
+            else if (_dlssQuality == DLSS_Quality.Performance)
             {
                 dlssSettings.perfQuality = NVIDIA.DLSSQuality.MaximumPerformance;
             }
@@ -493,6 +510,7 @@ namespace TND.DLSS
 
             public void UpdateDispatch(Texture source, Texture depth, Texture motionVectors, Texture biasColorMask, Texture output, CommandBuffer cmdBuffer)
             {
+
                 if (m_DlssContext == null)
                     return;
                 if (m_Data.sharpening)
@@ -525,6 +543,7 @@ namespace TND.DLSS
                     motionVectors = motionVectors,
                     biasColorMask = biasColorMask
                 };
+
                 m_Device.ExecuteDLSS(cmdBuffer, m_DlssContext, textureTable);
             }
 

@@ -23,7 +23,6 @@ namespace TND.DLSS
     {
 #if TND_DLSS && UNITY_STANDALONE_WIN && UNITY_64
 
-        public RTHandleSystem RTHandleS;
         public RTHandle m_dlssOutput;
         public RTHandle m_colorBuffer;
         public Texture m_depthBuffer;
@@ -38,6 +37,7 @@ namespace TND.DLSS
         private bool containsRenderFeature = false;
         private UniversalRenderPipelineAsset UniversalRenderPipelineAsset;
         private UniversalAdditionalCameraData m_cameraData;
+        private bool m_usePhysicalProperties;
 
         public DlssViewData dlssData;
         public ViewState[] state;
@@ -127,10 +127,10 @@ namespace TND.DLSS
             m_renderWidth = (int)(m_displayWidth / _upscaleRatio);
             m_renderHeight = (int)(m_displayHeight / _upscaleRatio);
 
-            m_dlssOutput = RTHandleS.Alloc(m_displayWidth, m_displayHeight, enableRandomWrite: true, colorFormat: CameraGraphicsOutput, msaaSamples: MSAASamples.None, name: "DLSS OUTPUT");
+            m_dlssOutput = RTHandles.Alloc(m_displayWidth, m_displayHeight, enableRandomWrite: true, colorFormat: CameraGraphicsOutput, msaaSamples: MSAASamples.None, name: "DLSS OUTPUT");
 
 #if !UNITY_2022_1_OR_NEWER
-            m_colorBuffer = RTHandleS.Alloc(m_renderWidth, m_renderHeight, enableRandomWrite: false, colorFormat: CameraGraphicsOutput, msaaSamples: MSAASamples.None, name: "DLSS INPUT");
+            m_colorBuffer = RTHandles.Alloc(m_renderWidth, m_renderHeight, enableRandomWrite: false, colorFormat: CameraGraphicsOutput, msaaSamples: MSAASamples.None, name: "DLSS INPUT");
 #endif
 
             dlssData.inputRes = new Resolution() { width = m_renderWidth, height = m_renderHeight };
@@ -280,8 +280,9 @@ namespace TND.DLSS
             {
                 return;
             }
-
-            m_mainCamera.ResetProjectionMatrix();
+            m_mainCamera.usePhysicalProperties = m_usePhysicalProperties;
+            if (!m_mainCamera.usePhysicalProperties)
+                m_mainCamera.ResetProjectionMatrix();
         }
 
         /// <summary>
@@ -303,6 +304,7 @@ namespace TND.DLSS
                 return;
             }
 
+            m_usePhysicalProperties = m_mainCamera.usePhysicalProperties;
             var m_jitterMatrix = GetJitteredProjectionMatrix(m_mainCamera.projectionMatrix, m_renderWidth, m_renderHeight, m_antiGhosting, m_mainCamera);
             var m_projectionMatrix = m_mainCamera.projectionMatrix;
             m_mainCamera.nonJitteredProjectionMatrix = m_projectionMatrix;
@@ -329,10 +331,10 @@ namespace TND.DLSS
         private void SetupFrameBuffers()
         {
             m_previousScaleFactor = m_scaleFactor;
+            prevCameraGraphicsFormat = CameraGraphicsOutput;
+            m_previousRenderingPath = m_mainCamera.actualRenderingPath;
 
             SetupCommandBuffer();
-
-            m_previousRenderingPath = m_mainCamera.actualRenderingPath;
         }
 
         /// <summary>
@@ -343,8 +345,6 @@ namespace TND.DLSS
             m_displayWidth = actualDisplayWidth;
             m_displayHeight = actualDisplayHeight;
 
-            RTHandleS = new RTHandleSystem();
-            RTHandleS.Initialize(m_displayWidth, m_displayHeight);
 
             SetupFrameBuffers();
         }
