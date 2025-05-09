@@ -10,13 +10,13 @@
 **by [Inbora Studio](https://github.com/inborastudio)**  
 NVIDIA DLSS integration for Unity's Built-in (BIRP), Universal (URP), and High-Definition Render Pipeline (HDRP).
 
-## 🔍 About DLSS
+##  About DLSS
 
 **Deep Learning Super Sampling (DLSS)** is a performance-enhancing upscaling technique developed by NVIDIA. It renders frames at a lower resolution and then uses AI to upscale them to a higher resolution, offering nearly-native visual quality with improved performance.
 
 > **Note**: DLSS only works on NVIDIA RTX GPUs.
 
-### ✅ Benefits
+### Benefits
 
 - Increased framerate on GPU-bound projects
 - Lower GPU usage and improved battery life on laptops
@@ -24,7 +24,7 @@ NVIDIA DLSS integration for Unity's Built-in (BIRP), Universal (URP), and High-D
 
 ---
 
-## 🎮 Supported Render Pipelines
+##  Supported Render Pipelines
 
 | Render Pipeline | Support Status |
 |----------------|----------------|
@@ -32,16 +32,16 @@ NVIDIA DLSS integration for Unity's Built-in (BIRP), Universal (URP), and High-D
 | Universal (URP) | ✅ |
 | High-Definition (HDRP) | ⚠️ Native support exists. Custom override required. |
 
-## 💻 Supported Platforms
+##  Supported Platforms
 
 - Windows x64 (DX11, DX12)
 - PCVR (BIRP & URP)
 
-> ⚠️ DLSS support for HDRP in PCVR is **currently in development**.
+>  DLSS support for HDRP in PCVR is **currently in development**.
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### URP Setup
 
@@ -65,7 +65,7 @@ NVIDIA DLSS integration for Unity's Built-in (BIRP), Universal (URP), and High-D
 5. Add `DLSS_HDRP.cs` to the **Main Camera**.
 6. Press the **“I have edited the source files”** button.
 
-> ⚠️ If you see compilation errors, HDRP source files were not properly edited.
+>  If you see compilation errors, HDRP source files were not properly edited.
 
 #### Optional HDRP Steps
 
@@ -74,7 +74,7 @@ NVIDIA DLSS integration for Unity's Built-in (BIRP), Universal (URP), and High-D
 
 ---
 
-## ⚙️ Inspector Settings
+##  Inspector Settings
 
 ### Quality Modes
 
@@ -92,7 +92,7 @@ NVIDIA DLSS integration for Unity's Built-in (BIRP), Universal (URP), and High-D
 
 ---
 
-## 🧪 Features (BIRP Only)
+##  Features (BIRP Only)
 
 - **FallBack Anti-Aliasing**: Automatically switches to fallback AA if DLSS is unsupported.
 - **Anti-Ghosting Slider (0-1)**: Adjusts ghosting artifacts from temporal upscaling.
@@ -102,10 +102,10 @@ NVIDIA DLSS integration for Unity's Built-in (BIRP), Universal (URP), and High-D
 
 ---
 
-## 🛠️ Unity 6+ (HDRP 17.x) Source Patch
+##  Unity 6+ (HDRP 17.x) Source Patch
 - For Unity 6 or newer using HDRP 17.0.x, you need to manually patch the HDRP source.
 
-## 🔧 Step-by-Step
+##  Step-by-Step
 - Locate the following line in your HDRP source file (usually in a render loop file):
 
 ```csharp
@@ -129,7 +129,7 @@ if (hdCamera.IsTNDUpscalerEnabled())
 }
 ```
 
-## 🧩 Public API
+##  Public API
 
 Available via `DLSS_URP.cs` and `DLSS_HDRP.cs` camera components:
 
