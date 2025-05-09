@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: YOUR_SCRIPT_GUID_HERE, type: 3}
+  m_Name: DLSS_Resources
+  m_EditorClassIdentifier: 
+  defaultQualityMode: 1
+  defaultAntiGhosting: 0
+  defaultSharpening: 0
+  defaultSharpness: 0.5
+  minResolutionWidth: 1280
+  minResolutionHeight: 720
+  maxResolutionWidth: 7680
+  maxResolutionHeight: 4320
+  supportedPlatforms:
+  - Windows
+  supportedGPUs:
+  - RTX 2060
+  - RTX 2070
+  - RTX 2080
+  - RTX 3060
+  - RTX 3070
+  - RTX 3080
+  - RTX 3090
+  - GTX 1660
+  - GTX 1660 Ti
+  minDriverVersion: 445.75 
