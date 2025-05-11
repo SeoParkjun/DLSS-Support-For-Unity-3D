@@ -1,10 +1,13 @@
 # DLSS Upscaling for Unity
+> ❤️ **Info:** Tested on Unity 6 HDRP 17.0.+
 
-## DLSS HDRP OFF -- Tested on 2022+ & Unity 6
-![Screenshot 2025-05-07 165235](https://github.com/user-attachments/assets/1dbe1692-63bf-4f62-9281-d63a37c6cf49)
+## DLSS HDRP OFF 
+![image](https://github.com/user-attachments/assets/635d4a4c-0296-4db8-8563-56c3008c621e)
+
 ---
 ## DLSS HDRP ON
-![Screenshot 2025-05-07 165415](https://github.com/user-attachments/assets/e82e218c-66fc-4a65-bc70-2e076a0eacdb)
+![image](https://github.com/user-attachments/assets/09608033-affb-4f06-a8a4-aa63973365ee)
+
 
 
 **by [Inbora Studio](https://github.com/inborastudio)**  
@@ -30,7 +33,19 @@ NVIDIA DLSS integration for Unity's Built-in (BIRP), Universal (URP), and High-D
 |----------------|----------------|
 | Built-in (BIRP) | ✅ |
 | Universal (URP) | ✅ |
-| High-Definition (HDRP) | ⚠️ Native support exists. Custom override required. |
+| High-Definition (HDRP) | ⚠️ Native support exists. [Custom override required](HDRP_SUPPORT.md). |
+
+## DLSS UNITY 3D V2.2.6 (Menu)
+| Setting               | Scaling Factor | Description                                 |
+| --------------------- | -------------- | ------------------------------------------- |
+| **Off**               | –              | DLSS is disabled (native resolution only)   |
+| **Native AA**         | 1.0×           | Native resolution with anti-aliasing only   |
+| **Ultra Quality**     | 1.2×           | Slight upscale for best image quality       |
+| **Quality**           | 1.5×           | Balanced between performance and clarity    |
+| **Balanced**          | 1.7×           | Optimized for performance with fair quality |
+| **Performance**       | 2.0×           | Prioritizes FPS, lower render resolution    |
+| **Ultra Performance** | 3.0×           | Maximum FPS boost, lowest render resolution |
+
 
 ##  Supported Platforms
 
@@ -53,45 +68,6 @@ NVIDIA DLSS integration for Unity's Built-in (BIRP), Universal (URP), and High-D
 > If the `DLSS_URP` component cannot be added to the camera, verify that you have a valid Scriptable Render Pipeline asset set in your Graphics settings.
 
 ---
-
-### HDRP Setup
-
-1. Import the **DLSS Package**.
-2. **Edit HDRP source files** (refer to "HDRP Source Files" chapter in documentation).
-3. Add `TND_DLSS_DLSSRenderPass` to `HDRenderPipelineGlobalSettings` → **Before Post Process**.
-4. Enable **Dynamic Resolution** in HDRP settings:
-   - Minimum Screen Percentage: `33`
-   - Upscale Filter: `Catmull-Rom`
-5. Add `DLSS_HDRP.cs` to the **Main Camera**.
-6. Press the **“I have edited the source files”** button.
-
->  If you see compilation errors, HDRP source files were not properly edited.
-
-#### Optional HDRP Steps
-
-- Ensure the **Volume Mask** of the camera includes the camera's layer.
-- Enable **Allow Dynamic Resolution** on the camera.
-
----
-
-##  Inspector Settings
-
-### Quality Modes
-
-| Setting            | Scale Factor | Description                  |
-|--------------------|--------------|------------------------------|
-| Off                | -            | DLSS disabled                |
-| Native AA          | 1.0x         | Native resolution with AA    |
-| Ultra Quality      | 1.2x         | High visual fidelity         |
-| Quality            | 1.5x         | Balanced quality & speed     |
-| Balanced           | 1.7x         | Lower render resolution      |
-| Performance        | 2.0x         | High performance             |
-| Ultra Performance  | 3.0x         | Maximum performance          |
-
-> Example: At 1920x1080 native resolution, "Performance" mode renders at 960x540 and upscales to 1080p.
-
----
-
 ##  Features (BIRP Only)
 
 - **FallBack Anti-Aliasing**: Automatically switches to fallback AA if DLSS is unsupported.
@@ -101,34 +77,6 @@ NVIDIA DLSS integration for Unity's Built-in (BIRP), Universal (URP), and High-D
 - **Mipmap Bias Override**: Manually fine-tune the bias to reduce texture flickering.
 
 ---
-
-##  Unity 6+ (HDRP 17.x) Source Patch
-- For Unity 6 or newer using HDRP 17.0.x, you need to manually patch the HDRP source.
-
-##  Step-by-Step
-- Locate the following line in your HDRP source file (usually in a render loop file):
-
-```csharp
-source = BeforeCustomPostProcessPass(renderGraph, hdCamera, source,
-    depthBuffer, normalBuffer, motionVectors,
-    m_CustomPostProcessOrdersSettings.beforePostProcessCustomPostProcesses,
-    HDProfileId.CustomPostProcessBeforePP);
-```
-- Replace it with:
-
-```csharp
-source = BeforeCustomPostProcessPass(renderGraph, hdCamera, source,
-    depthBuffer, normalBuffer, motionVectors,
-    m_CustomPostProcessOrdersSettings.beforePostProcessCustomPostProcesses,
-    HDProfileId.CustomPostProcessBeforePP);
-    
-if (hdCamera.IsTNDUpscalerEnabled())
-{
-    SetCurrentResolutionGroup(renderGraph, hdCamera,
-        ResolutionGroup.AfterDynamicResUpscale);
-}
-```
-
 ##  Public API
 
 Available via `DLSS_URP.cs` and `DLSS_HDRP.cs` camera components:
